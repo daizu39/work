@@ -1,11 +1,10 @@
 #!/bin/bash
 
-# cd $(dirname $0)
-
-LOGFOLDER=./logs
-DATA=./data
-DATA_FILE=log.txt
-REPORT=minutes.txt
+WORKDIR=~/.work
+LOGFOLDER=$WORKDIR/logs
+DATA=$WORKDIR/data
+DATA_FILE=$WORKDIR/log.txt
+REPORT=$WORKDIR/minutes.txt
 
 # 引数を格納する連想配列
 declare -A args
@@ -39,6 +38,10 @@ SECONDS=$(date -d "$NOW" +%S)
 
 INTERACTIVE_START_MSG="start"
 INTERACTIVE_END_MSG="end"
+
+if [[ -z EDITOR ]]
+	EDITOR=vi
+fi
 
 while (( $# > 0 )); do
 	key=
@@ -80,7 +83,7 @@ while (( $# > 0 )); do
 			fi
 			;;
 		-* )
-			opt_str=${$1:1:${#1}-1}
+			opt_str=${$1:1:${#1}-1}l
 			for i in $( seq 0 $((${#1} - 1)) ); do
 				key_small=${opt_str:i:1}
 				if [[ " ${!options[@]} " =~ " ${key_small} " ]]; then
@@ -115,7 +118,7 @@ for key in ${!args[@]}; do
 			if [ -f $REPORT ]; then
 				rm $REPORT
 			fi
-			vim $REPORT
+			$EDITOR $REPORT
 			cat $REPORT >> $DATA_FILE
 			echo "[$(date '+%F %X')] ${INTERACTIVE_END_MSG}" >> $DATA_FILE
 			;;
