@@ -1,0 +1,124 @@
+#!/bin/bash
+
+# cd $(dirname $0)
+
+LOGFOLDER=./logs
+DATA=./data
+DATA_FILE=log.txt
+REPORT=minutes.txt
+
+# 引数を格納する連想配列
+declare -A args
+# 値がある引数
+declare -A options_value=(
+	["m"]="message"
+)
+# 値がない引数
+declare -A options=(
+	["i"]="interactive"
+)
+
+# [注意] grepで検索する条件が日付とのマッチングになっている
+# tac でファイル全ての行を反転させているため、行数が多い場合に時間がかかるかもしれない
+BEFORE=$(tac test.txt | grep -m 1 -E "^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]" | sed -e 's/^\[\(.*\)\]/\1/')
+NOW=$(date '+%F %X')
+
+BEFORE_YEAR=$(date -d "$BEFORE" +%Y)
+BEFORE_MONTH=$(date -d "$BEFORE" +%m)
+BEFORE_DAY=$(date -d "$BEFORE" +%d)
+BEFORE_HOUR=$(date -d "$BEFORE" +%H)
+BEFORE_MINUTES=$(date -d "$BEFORE" +%M)
+BEFORE_SECONDS=$(date -d "$BEFORE" +%S)
+
+YEAR=$(date -d "$NOW" +%Y)
+MONTH=$(date -d "$NOW" +%m)
+DAY=$(date -d "$NOW" +%d)
+HOUR=$(date -d "$NOW" +%H)
+MINUTES=$(date -d "$NOW" +%M)
+SECONDS=$(date -d "$NOW" +%S)
+
+INTERACTIVE_START_MSG="start"
+INTERACTIVE_END_MSG="end"
+
+while (( $# > 0 )); do
+	key=
+	value=
+	key_small=
+	opt_str=
+
+	case $1 in
+		--*=* )
+			key=$(echo $1 | sed -e "s/--\(.+\)=.*/\1")
+			value=$(echo $1 | sed -e "s/--.+=\(.*\)/\1")
+			args["${key}"]="${value}" # 共通化したい
+			shift
+			;;
+		--* )
+			key=$(echo $1 | sed -e "s/--\(.+\)/\1")
+			args["${key}"]="${value}"
+			shift
+			;;
+		-? )
+			key_small=${1:1:1}
+			if [[ " ${!options_value[@]} " =~ " ${key_small} " ]]; then
+				key="${options_value["${key_small}"]}"
+				value=$2
+				if [[ -z $value ]]; then
+					echo "[arg:${key}] does not have value."
+					exit -1
+				else
+					args["${key}"]="${value}"
+				fi
+
+				shift 2
+			elif [[ " ${!options[@]} " =~ " ${key_small} " ]]; then
+				key="${options[${key_small}]}"
+				args["${key}"]="${value}"
+				shift
+			else
+				shift
+			fi
+			;;
+		-* )
+			opt_str=${$1:1:${#1}-1}
+			for i in $( seq 0 $((${#1} - 1)) ); do
+				key_small=${opt_str:i:1}
+				if [[ " ${!options[@]} " =~ " ${key_small} " ]]; then
+					key=${options_value[${key_small}]}
+					args["${key}"]="${value}"
+				fi
+			done
+			shift
+			;;
+		* )
+			shift
+			;;
+	esac
+done
+
+# 計算の順序関係として最初にしなければいけないもの
+message=
+for key in ${!args[@]}; do
+	case $key in
+		"message" )
+			message=${args[$key]}
+			echo "[$NOW] $message" >> $DATA_FILE
+			;;
+	esac
+done
+
+# 計算の順序関係として2番目にしなければいけないもの
+for key in ${!args[@]}; do
+	case $key in
+		"interactive" )
+			echo "[$NOW] ${INTERACTIVE_START_MSG}" >> $DATA_FILE
+			if [ -f $REPORT ]; then
+				rm $REPORT
+			fi
+			vim $REPORT
+			cat $REPORT >> $DATA_FILE
+			echo "[$(date '+%F %X')] ${INTERACTIVE_END_MSG}" >> $DATA_FILE
+			;;
+	esac
+done
+
