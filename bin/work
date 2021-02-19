@@ -1,10 +1,10 @@
 #!/bin/bash
 
-WORKDIR=~/.work
-LOGFOLDER=$WORKDIR/logs
-DATA=$WORKDIR/data
-DATA_FILE=$WORKDIR/log.txt
-REPORT=$WORKDIR/minutes.txt
+readonly WORKDIR=~/.work
+readonly LOGFOLDER=$WORKDIR/logs
+readonly DATA=$WORKDIR/data
+readonly DATA_FILE=$WORKDIR/log.txt
+readonly REPORT=$WORKDIR/minutes.txt
 
 # 引数を格納する連想配列
 declare -A args
@@ -15,31 +15,33 @@ declare -A options_value=(
 # 値がない引数
 declare -A options=(
 	["i"]="interactive"
+	["e"]="edit"
 )
 
 # [注意] grepで検索する条件が日付とのマッチングになっている
 # tac でファイル全ての行を反転させているため、行数が多い場合に時間がかかるかもしれない
-BEFORE=$(tac test.txt | grep -m 1 -E "^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]" | sed -e 's/^\[\(.*\)\]/\1/')
-NOW=$(date '+%F %X')
+readonly BEFORE=$(tac ${REPORT} | grep -m 1 -E "^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\]" | sed -e 's/^\[\(.*\)\]/\1/')
+echo $BEFORE
+readonly NOW=$(date '+%F %X')
 
-BEFORE_YEAR=$(date -d "$BEFORE" +%Y)
-BEFORE_MONTH=$(date -d "$BEFORE" +%m)
-BEFORE_DAY=$(date -d "$BEFORE" +%d)
-BEFORE_HOUR=$(date -d "$BEFORE" +%H)
-BEFORE_MINUTES=$(date -d "$BEFORE" +%M)
-BEFORE_SECONDS=$(date -d "$BEFORE" +%S)
+readonly BEFORE_YEAR=$(date -d "$BEFORE" +%Y)
+readonly BEFORE_MONTH=$(date -d "$BEFORE" +%m)
+readonly BEFORE_DAY=$(date -d "$BEFORE" +%d)
+readonly BEFORE_HOUR=$(date -d "$BEFORE" +%H)
+readonly BEFORE_MINUTES=$(date -d "$BEFORE" +%M)
+readonly BEFORE_SECONDS=$(date -d "$BEFORE" +%S)
 
-YEAR=$(date -d "$NOW" +%Y)
-MONTH=$(date -d "$NOW" +%m)
-DAY=$(date -d "$NOW" +%d)
-HOUR=$(date -d "$NOW" +%H)
-MINUTES=$(date -d "$NOW" +%M)
-SECONDS=$(date -d "$NOW" +%S)
+readonly YEAR=$(date -d "$NOW" +%Y)
+readonly MONTH=$(date -d "$NOW" +%m)
+readonly DAY=$(date -d "$NOW" +%d)
+readonly HOUR=$(date -d "$NOW" +%H)
+readonly MINUTES=$(date -d "$NOW" +%M)
+readonly SECONDS=$(date -d "$NOW" +%S)
 
-INTERACTIVE_START_MSG="start"
-INTERACTIVE_END_MSG="end"
+readonly INTERACTIVE_START_MSG="start"
+readonly INTERACTIVE_END_MSG="end"
 
-if [[ -z EDITOR ]]
+if [[ -z EDITOR ]]; then
 	EDITOR=vi
 fi
 
@@ -125,3 +127,11 @@ for key in ${!args[@]}; do
 	esac
 done
 
+# 計算の順序関係として最後にしなければいけないもの
+for key in ${!args[@]}; do
+	case $key in
+		"edit" )
+			$EDITOR $DATA_FILE
+			;;
+	esac
+done
