@@ -6,13 +6,20 @@ readonly DATA=$WORKDIR/data
 readonly DATA_FILE=$WORKDIR/log.txt
 readonly REPORT=$WORKDIR/minutes.txt
 
-# 引数を格納する連想配列
+# * 引数を格納する連想配列
+# * keyには、省略系ではない引数optionを正規化して格納
+# * valueはkeyに対する値を格納
+# * valueがないkeyも存在
 declare -A args
-# 値がある引数
+
+# optons_value, optionsに対し、
+# 省略系がない引数に関しては、記載の必要なし
+
+# 値がある引数オプション
 declare -A options_value=(
 	["m"]="message"
 )
-# 値がない引数
+# 値がない引数オプション
 declare -A options=(
 	["i"]="interactive"
 	["e"]="edit"
