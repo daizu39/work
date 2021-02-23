@@ -1,5 +1,5 @@
-# $B4pK\<BAuJ}?K(B
-option$B=hM}$O!"(Bbash$B$G<u$1$k!#(B
-$B<u$1$?=hM}$KBP$7!"(Bbash$B!"(Brust$B!"(BOCaml$B!"(Bjs$B$J$I$G<BAu$9$k!#(B
+# 基本実装方針
+option処理は、bashで受ける。
+受けた処理に対し、bash、rust、OCaml、jsなどで実装する。
 # work
 This repository stores a useful command.
